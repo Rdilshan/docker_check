@@ -1,19 +1,20 @@
-FROM node:18-alpine AS base
+# Use an official node.js runtime as a parent image
+FROM node:22-alpine
 
-FROM base AS deps
-
+# Set the working directory in the container
 WORKDIR /app
-RUN apk add --no-cache postgresql-client
-RUN apk add --no-cache openssl
+
+# Copy the package.json and the package-lock.json files to the container
+COPY package*.json .
+
+# Install the dependencies
+RUN npm install
+
+# Copy the rest of the application code
 COPY . .
 
-RUN npm update && npm install
-RUN npx prisma migrate dev --name init
-RUN npx prisma generate
-RUN npm run build
-
+# Expose the port that the app runs on
 EXPOSE 3000
 
-# ENV PORT 3000
-
-CMD ["npm", "run", "start"]
+# Define the command to run your application
+CMD ["npm", "run","dev"]
