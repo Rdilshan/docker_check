@@ -1,28 +1,23 @@
-# Use an official node.js runtime as a parent image
-FROM node:22-alpine
+# Use a lighter Node.js image as a parent image
+FROM node:20-slim
 
-RUN apk add --no-cache libc6-compat
-RUN apk add --no-cache openssl
-# Set the working directory in the container
+# Install dependencies
+RUN apt-get update && apt-get install -y openssl libc6
+
+# Set working directory
 WORKDIR /app
 
-# Copy the package.json and the package-lock.json files to the container
-COPY package.json .
+# Copy dependency definitions
+COPY package.json package-lock.json ./
 
-RUN npm install pnpm -g
+# Install dependencies
+RUN npm install
 
-RUN pnpm install
-
+# Copy app source code
 COPY . .
 
+# Expose the app port
 EXPOSE 3000
-RUN  pnpm  prisma generate
 
-RUN pnpm  prisma migrate dev
-
-
-RUN pnpm  prisma migrate reset
-
-CMD [ "pnpm run dev" ]
-
-# CMD [ "sh","-c", "pnpm dlx prisma migrate dev && pnpm dlx prisma generate && pnpm dlx prisma migrate reset  && pnpm run dev" ]
+# Command to start the app
+CMD ["sh", "-c", "npx prisma migrate dev && npm run dev"]
