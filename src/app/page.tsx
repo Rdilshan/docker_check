@@ -34,8 +34,13 @@ export default function Home() {
         paragraphLoop: true,
         linebreaks: true,
       });
+      
+      const data = [
+        { id: 1, name: 'a' },
+        { id: 2, name: 'b' },
+      ];
 
-      doc.setData({ name,age });
+      doc.setData({ name,age ,data });
 
       doc.render();
 
