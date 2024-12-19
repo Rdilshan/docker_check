@@ -1,48 +1,58 @@
-"use client";
-import { useEffect, useState } from 'react';
+'use client';
 
-interface Post {
-  id: number;
-  title: string;
-  content: string;
-}
+import React, { useState } from 'react';
 
-export default function Home() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [error, setError] = useState<string | null>(null);
+const Page = () => {
+  const [file, setFile] = useState<File | null>(null);
+  const [fileUrl, setFileUrl] = useState<string>('');
 
-  useEffect(() => {
-    // Fetch posts from the API
-    const fetchPosts = async () => {
-      try {
-        const response = await fetch('/api/posts');
-        if (!response.ok) {
-          throw new Error('Failed to fetch posts');
-        }
-        const data = await response.json();
-        setPosts(data);
-      } catch (err) {
-        setError((err as Error).message);
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      setFile(event.target.files[0]);
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!file) {
+      alert('Please select a file!');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('/api/', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setFileUrl(data.url);
+      } else {
+        alert(data.error || 'Error uploading file');
       }
-    };
-
-    fetchPosts();
-  }, []);
+    } catch (error) {
+      console.error(error);
+      alert('Failed to upload file');
+    }
+  };
 
   return (
     <div>
-      <h1>Posts</h1>
-      <h1>.............</h1>
-
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <ul>
-        {posts.map((post) => (
-          <li key={post.id}>
-            <h2>{post.title}</h2>
-            <p>{post.content}</p>
-          </li>
-        ))}
-      </ul>
+      <h1>Upload File to MinIO</h1>
+      <input type="file" onChange={handleFileChange} />
+      <button onClick={handleFileUpload}>Upload</button>
+      {fileUrl && (
+        <div>
+          <p>File uploaded successfully:</p>
+          <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+            {fileUrl}
+          </a>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default Page;
